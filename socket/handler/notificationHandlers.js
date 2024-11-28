@@ -71,30 +71,7 @@ function notificationHandlers(io, socket) {
       socket.emit("error", { message: "Error responding to family request" });
     }
   });
-
-  // Event join notification
-  socket.on("event-joined", async (data) => {
-    try {
-      const { eventId } = data;
-
-      const notification = new Notification({
-        recipient: data.creatorId,
-        sender: socket.user.userId,
-        type: "EVENT_JOIN",
-        eventId,
-      });
-
-      await notification.save();
-      await notification.populate("sender", "name email profilePicture");
-      await notification.populate("eventId", "title");
-
-      io.to(`user:${data.creatorId}`).emit("new-notification", notification);
-    } catch (error) {
-      socket.emit("error", {
-        message: "Error sending event join notification",
-      });
-    }
-  });
+ 
 }
 
 module.exports = notificationHandlers;

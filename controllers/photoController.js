@@ -1,18 +1,37 @@
-const Photo=require("./../models/Photo");
-const uploadPhoto=async(req,res)=>{
-    const {description}=req.body;
-    const currentUser=req.user._id;
-    const photoUrl=`/uploads/${req.file.filename}`
-const photo=await Photo.create({
-    userId:currentUser,
-    description,
-    imageUrl:photoUrl,
-})
-res.status(200).json(photo);
+const Photo = require("../models/Photo");
+const photoController = {
+  uploadPhoto: async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
 
+      // Create file URL
+      const fileUrl = `/uploads/${req.file.filename}`;
+      console.log(fileUrl);
+      const photo = new Photo({
+        userId: req.user.userId,
+        imageUrl: fileUrl,
+        description: req.body.description || "",
+      });
+
+      await photo.save();
+      res.status(201).json(photo);
+    } catch (error) {
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  },
+
+  getPhotos: async (req, res) => {
+    try {
+      const photos = await Photo.find({ userId: req.user.userId }).sort(
+        "-createdAt"
+      );
+      res.json(photos);
+    } catch (error) {
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  },
 };
 
-module.exports={
-    uploadPhoto
-
-};
+module.exports = photoController;

@@ -29,6 +29,7 @@ app.use("/api/event", eventRoute);
 app.use("/api/tika", tikaRoutes);
 app.use("/api/photo", photoRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/dashboard", require("./routes/dashboard"));
 
 // Database connection
 mongoose
