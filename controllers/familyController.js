@@ -1,44 +1,48 @@
-const User=require("./../models/User")
-const addFamilyMember=async function (req,res) {
-    
-  try {
-    const { userId: familyMemberId } = req.body;
-    const user = await User.findById(req.user._id);
+const User = require("../models/User");
+const AppError = require("../utils/AppError");
+const catchAsync = require("../utils/catchAsync");
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+const addFamilyMember = catchAsync(async (req, res, next) => {
+  const { userId: familyMemberId } = req.body;
+  const user = await User.findById(req.user._id);
 
-    if (user.familyMembers.includes(familyMemberId)) {
-      return res.status(400).json({ message: "Family member already added" });
-    }
-
-    user.familyMembers.push(familyMemberId);
-    await user.save();
-    const familyMember = await User.findById(familyMemberId);
-    if (familyMember && !familyMember.familyMembers.includes(user._id)) {
-      familyMember.familyMembers.push(user._id);
-      await familyMember.save();
-    }
-
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+  if (!user) {
+    return next(new AppError("User not found", 404));
   }
-};
 
-const getFamilyMember = async (req, res) => {
+  if (user.familyMembers.includes(familyMemberId)) {
+    return next(new AppError("Family member already added", 400));
+  }
+
+  user.familyMembers.push(familyMemberId);
+  await user.save();
+
+  const familyMember = await User.findById(familyMemberId);
+  if (familyMember && !familyMember.familyMembers.includes(user._id)) {
+    familyMember.familyMembers.push(user._id);
+    await familyMember.save();
+  }
+
+  res.json(user);
+});
+
+const getFamilyMember = catchAsync(async (req, res, next) => {
   const currentUserId = req.user._id;
   const myInfo = await User.findOne({ _id: currentUserId }).populate(
     "familyMembers",
     "name email profilePicture"
   );
+
+  if (!myInfo) {
+    return next(new AppError("User not found", 404));
+  }
+
   res.status(200).json({
     data: myInfo,
   });
+});
 
+module.exports = {
+  addFamilyMember,
+  getFamilyMember,
 };
-module.exports={
-    addFamilyMember,
-    getFamilyMember,
-}

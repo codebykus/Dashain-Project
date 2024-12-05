@@ -1,32 +1,31 @@
-const Message=require("../models/Message");
-const Event=require("../models/Event");
- const getEventMessage=async(req.params);
- const {eventId}=req.params;
- const currentUserId=req.user._id;
- const event=await Event.findById(eventId);
- if(!event){
-  return res.status(404).josn({
-    msg:"Event not found",
-  });
+const Message = require("../models/Message");
+const Event = require("../models/Event");
+const AppError = require("../utils/AppError");
+const catchAsync = require("../utils/catchAsync");
 
- }
- if(!event.participants.includes(currentUserId)){
-  return res.status(400).json({
-    msg:"You are not authorized to view messages",
+const messageController = {
+  getEventMessages: catchAsync(async (req, res, next) => {
+    const { eventId } = req.params;
+    const userId = req.user.userId;
 
-  });
+    // Check if the user is a participant of the event
+    const event = await Event.findById(eventId);
+    if (!event || !event.participants.includes(userId)) {
+      return next(new AppError("Not authorized to view messages", 403));
+    }
 
- }
+    // Retrieve messages and populate sender details
+    const messages = await Message.find({ eventId })
+      .populate("sender", "name email profilePicture")
+      .sort("createdAt");
 
- const eventMessages=await Message.find({
-  eventId,
- })
+    // Send the response
+    res.json({
+      status: "success",
+      message: "Messages retrieved successfully",
+      messages,
+    });
+  }),
+};
 
- .populate("sender","name email profilePicture")
- .sort("createdAt");
- res.join({
-  eventMessages
- });
-
-module.exports={getEventMessage}
-
+module.exports = messageController;

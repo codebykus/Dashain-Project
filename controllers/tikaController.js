@@ -1,65 +1,55 @@
-// controllers/tikaController.js
-const Tika = require('../models/Tika');
-const User=require("../models/User")
+const User = require("../models/User");
+const Tika = require("../models/Tika");
+const AppError = require("../utils/AppError");
+const catchAsync = require("../utils/catchAsync");
 
+const addTika = catchAsync(async (req, res, next) => {
+  const { receiverId, tikaMessage, blessings } = req.body;
+  const senderId = req.user._id;
 
+  // Validate that all required fields are present
+  if (!receiverId || !tikaMessage || !blessings) {
+    return next(new AppError("Missing required fields", 400));
+  }
 
+  const sender = await User.findById(senderId);
+  const receiver = await User.findById(receiverId);
 
-//aDDING TIKA
-const addTika=async(req,res)=>{
-    try{
-        const {receiverId,tikaMessage,blessings}=req.body;
-        const senderId=req.user._id;
-        const sender=await User.findById(senderId);
-        const receiver=await User.findById(receiverId)
-        if(!sender || !receiver){
-            return res.status(404).json({message:"Sender or receiver not found"})
-        }
-        const newTika = new Tika({
-            senderId,
-            receiverId,
-            tikaMessage,
-            blessings,
-            tikaDate: new Date(),
-          });
-      
-          await newTika.save();
-      
-          res.status(201).json({
-            message: "Tika sent successfully!",
-            tika: newTika,
-          });
-        } catch (error) {
-          res.status(500).json({ message: "Server error", error: error.message });
-        }
-      };
+  if (!sender || !receiver) {
+    return next(new AppError("Sender or receiver not found", 404));
+  }
 
+  const newTika = new Tika({
+    senderId,
+    receiverId,
+    tikaMessage,
+    blessings,
+    tikaDate: new Date(),
+  });
 
-    // Get Tika 
-    const getTika=async(req,res)=>{
-        try{
-            const userId=req.user._id;
-            const tikaHistory=await Tika.find({
-                $or:[{
-                    senderId:userId
-                },{receiverId:userId}],
+  await newTika.save();
 
-            })
-            .populate("senderId","name")
-            .populate("receiverId","name")
-            .sort({tikaDate:-1});
-            res.status(200).json({
-                message:"Tika history retrieved sucessfully",
-                tikaHistory,
+  res.status(201).json({
+    status: "success",
+    message: "Tika sent successfully!",
+    tika: newTika,
+  });
+});
 
-            });
+const getTika = catchAsync(async (req, res, next) => {
+  const tikas = await Tika.find()
+    .populate("senderId", "name email")
+    .populate("receiverId", "name email");
 
-        }
-        catch(error){
-            res.status(500).json({message:"Server error",error:error.message})
-        }
-    }   
-      module.exports={
-        addTika,getTika
-      }
+  if (!tikas) {
+    return next(new AppError("No Tikas found", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: tikas,
+  });
+});
+
+module.exports = { addTika, getTika };
     

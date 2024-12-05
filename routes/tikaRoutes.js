@@ -5,6 +5,5 @@ const authMiddleware = require("../middleware/authverify");
 // Route to send Tika
 router.post("/", authMiddleware, addTika);
 // Get Tika
-router.get("/", authMiddleware,getTika)
-
+router.get("/",authMiddleware,getTika)
 module.exports=router;

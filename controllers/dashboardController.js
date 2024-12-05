@@ -1,41 +1,31 @@
-const User = require("../models/User");
-const Event = require("../models/Event");
-const Photo = require("../models/Photo");
-const Message=require("../models/Message.js")
+const userSchema = require("../models/User");
+const eventSchema = require("../models/Event");
+const photoSchema = require("../models/Photo");
+const msgSchema = require("../models/Message");
+
 const dashboardController = {
   getDashboardData: async (req, res) => {
     try {
-      // const userCount = await User.countDocuments();
-      // const eventCount = await Event.countDocuments();
-      // const events = await Event.find().sort({ createdAt: -1 }).limit(5); // Get the latest 5 events
-const messageStats=await Message.aggregate([
-  {
-    $group:{
-      _id:{
-        userId:"$sender",
-        eventId:"$eventId",
-       
-      },
-      count:{$sum:1}
-    }
-  }
-])
+      const userCount = await userSchema.countDocuments();
+      const eventCount = await eventSchema.countDocuments();
+      const events = await eventSchema.find().sort({ createdAt: -1 }).limit(5);
+
       res.json({
-        // userCount,
-        // eventCount,
-        // latestEvents: events,
-        messageStats,
+        userCount,
+        eventCount,
+        latestEvents: events,
       });
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: "Server Error", err });
     }
   },
 
   getPhotoStatistics: async (req, res) => {
     try {
-      const totalPhotos = await Photo.countDocuments();
-      const photosByUser = await Photo.aggregate([
+      const photoCount = await photoSchema.countDocuments();
+
+      const photosByUser = await photoSchema.aggregate([
         {
           $group: {
             _id: "$userId",
@@ -44,31 +34,102 @@ const messageStats=await Message.aggregate([
         },
         {
           $lookup: {
-            from: "users", // The name of the User collection
+            from: "users",
             localField: "_id",
             foreignField: "_id",
             as: "userInfo",
           },
         },
         {
-          $unwind: "$userInfo", // Unwind the userInfo array to get the name
+          $unwind: "$userInfo",
         },
         {
           $project: {
-            _id: 0, // Exclude the _id field
+            _id: 0,
             userId: "$userInfo._id",
-            userName: "$userInfo.name", // Include the user's name
+            userName: "$userInfo.name",
+            count: 1,
+          },
+        },
+      ]);
+      res.json({ photoCount, photosByUser });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: "Server Error", err });
+    }
+  },
+
+  msgStats: async (req, res) => {
+    try {
+      const msgCount = await msgSchema.aggregate([
+        {
+          $group: {
+            _id: { eventId: "$eventId", senderId: "$sender" },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $lookup: {
+            from: "events",
+            localField: "_id.eventId",
+            foreignField: "_id",
+            as: "eventDetails",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id.senderId",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        { $unwind: "$eventDetails" },
+        { $unwind: "$userDetails" },
+        {
+          $project: {
+            _id: 0,
+            userName: "$userDetails.name",
+            eventName: "$eventDetails.title",
             count: 1,
           },
         },
       ]);
 
-      res.json({
-        totalPhotos,
-        photosByUser,
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Server error", error: error.message });
+      res.json(msgCount);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: "Server Error", err });
+    }
+  },
+  eventPerDate: async (req, res) => {
+    try {
+      const eventDate = await eventSchema.aggregate([
+        {
+          $group: {
+            _id: {
+              date: "$date",
+            },
+
+            count: { $sum: 1 },
+            events: {
+              $push: "$title",
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            date: "$_id.date",
+            count: 1,
+            events: 1,
+          },
+        },
+      ]);
+      res.json(eventDate);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: "Server Error" });
     }
   },
 };

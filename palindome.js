@@ -1,25 +1,39 @@
-// function palindromeNum(num){
-// //     let str=num.toString();
-// //     return str === str.split('').reverse().join('')
-// // }
-// // console.log(palindromeNum(121));
-// // console.log(palindromeNum(2323))
+// function findHighestConsecutiveOddNumber(num) {
+//     let numStr = num.toString();
+//     let longestOdd = "";
+//     let currentOdd = "";
 
-// // without string
-function palindromeNum(num){
-    if (num<0)
-        return false;
+//     for (let i = 0; i < numStr.length; i++) {
+//         let digit = numStr[i];
+//         if (digit % 2 !== 0) {
+//             currentOdd += digit;
+//             if (currentOdd > longestOdd) {
+//                 longestOdd = currentOdd;
+//             }
+//         } else {
+//             currentOdd = "";
+//         }
+//     }
 
-    let originalNum=num;
-    let reverseNum=0;
-    while(num >0){
-        let digit=num%10;
-        reverseNum=reverseNum*10+digit;
-        num=Math.floor(num/10);
+//     return longestOdd;
+// }
+// console.log(findHighestConsecutiveOddNumber(34512))
 
+
+
+function isPerfectNumber(num){
+    let sum =0;
+    for(let i =1; i<=num/2;i++){
+        if(num%i===0){
+            sum=sum+i;
+        }
     }
-return originalNum===reverseNum;
-}
+if (sum===num){
+    return true;
 
-console.log(palindromeNum(121))
-console.log(palindromeNum(-121))                        
+}else{
+    return false
+}
+}
+console.log(isPerfectNumber(6));
+console.log(isPerfectNumber(12))
