@@ -3,8 +3,11 @@ const { registerUser, loginUser, getUserDetails,editUserDetails} = require('../c
 const router = express.Router();
 const authValidation=require("../middleware/authverify")
 const upload=require("../middleware/upload")
-router.post('/register', registerUser);
-router.post('/login', loginUser);
+const {validate,validateRegistration,validateLogin}=require("../middleware/validation")
+
+
+router.post('/register',validateRegistration(),validate, registerUser);
+router.post('/login', validateLogin(),validate,loginUser);
 router.get("/details",authValidation,getUserDetails)
 router.patch("/edit",authValidation,upload.single("photo"),editUserDetails)
 module.exports = router;

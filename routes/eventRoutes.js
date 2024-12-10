@@ -9,8 +9,11 @@ const {
     getUnjoinedEvents,
 } = require("../controllers/eventController");
 const { getEventMessages } = require("../controllers/messageController");
+const {validate,validateEventCreate}=require("../middleware/validation")
 
-eventRoutes.post("/", authValidation, createEvent);
+
+
+eventRoutes.post("/", authValidation,validateEventCreate(), validate,createEvent);
 eventRoutes.get("/", authValidation, getEvent);
 eventRoutes.post("/:eventId/join", authValidation, joinEvent);
 eventRoutes.get("/:eventId/details", authValidation, getEventDetails);

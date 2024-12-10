@@ -2,7 +2,7 @@ const { body } = require("express-validator");
 
 const validateRegistration = () => {
   return [
-    body("username")
+    body("name")
       .notEmpty()
       .withMessage("Provide your username")
       .isLength({

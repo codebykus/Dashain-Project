@@ -6,7 +6,7 @@ const catchAsync = require('../utils/catchAsync'); // Assuming catchAsync is imp
 
 // Register User
 const registerUser = catchAsync(async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password,confirmPassword } = req.body;
 
   // Check if the email is already registered
   const existingUser = await User.findOne({ email });
