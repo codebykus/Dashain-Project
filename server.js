@@ -5,7 +5,7 @@ const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: 100,
   message: "Too many request,please try again later ",
 });
 const helmet = require("helmet");
@@ -31,7 +31,7 @@ const http = require("http");
 const server = http.createServer(app);
 
 // Middleware
-app.use(morgan());
+// app.use(morgan());
 app.use(cors(corsOption));
 app.use(limiter);
 app.use(helmet());

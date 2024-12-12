@@ -8,6 +8,7 @@ const photoController = {
     if (!req.file) {
       return next(new AppError("No file uploaded", 400));
     }
+    console.log(req.file);
 
     // Create file URL
     const fileUrl = `/uploads/${req.file.filename}`;

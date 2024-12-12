@@ -1,57 +1,40 @@
 const { body } = require("express-validator");
 
-const validateRecipient = () => {
-  return [
-    body("recipient")
-      .notEmpty()
-      .withMessage("Recipient is required")
-  ];
-};
+const validateNotificationCreate = () => [
+  body("recipient")
+    .notEmpty()
+    .withMessage("Recipient is required")
+    .isMongoId()
+    .withMessage("Recipient must be a valid MongoDB ObjectId"),
 
-const validateSender = () => {
-  return [
-    body("sender")
-      .notEmpty()
-      .withMessage("Sender is required")
-    
-  ];
-};
+  body("sender")
+    .notEmpty()
+    .withMessage("Sender is required")
+    .isMongoId()
+    .withMessage("Sender must be a valid MongoDB ObjectId"),
 
-const validateType = () => {
-  return [
-    body("type")
-      .notEmpty()
-      .withMessage("Type is required")
-      .withMessage("Type must be either 'FAMILY_REQUEST' or 'EVENT_JOIN'"),
-  ];
-};
+  body("type")
+    .notEmpty()
+    .withMessage("Type is required")
+    .isIn(["FAMILY_REQUEST", "EVENT_JOIN"])
+    .withMessage("Type must be either 'FAMILY_REQUEST' or 'EVENT_JOIN'"),
 
-const validateEventId = () => {
-  return [
-    body("eventId")
-      .withMessage("Event ID must be a valid "),
-  ];
-};
+  body("eventId")
+    .optional()
+    .isMongoId()
+    .withMessage("Event ID must be a valid MongoDB ObjectId"),
 
-const validateStatus = () => {
-  return [
-    body("status")
-      .withMessage("Status must be either 'PENDING', 'ACCEPTED', or 'REJECTED'"),
-  ];
-};
+  body("status")
+    .optional()
+    .isIn(["PENDING", "ACCEPTED", "REJECTED"])
+    .withMessage("Status must be either 'PENDING', 'ACCEPTED', or 'REJECTED'"),
 
-const validateRead = () => {
-  return [
-    body("read")
-      .withMessage("Read must be a boolean value"),
-  ];
-};
+  body("read")
+    .optional()
+    .isBoolean()
+    .withMessage("Read must be a boolean value"),
+];
 
 module.exports = {
-  validateRecipient,
-  validateSender,
-  validateType,
-  validateEventId,
-  validateStatus,
-  validateRead,
+  validateNotificationCreate,
 };
